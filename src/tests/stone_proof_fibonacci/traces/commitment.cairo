@@ -5,7 +5,7 @@ use cairo_verifier::{
     tests::stone_proof_fibonacci,
 };
 
-fn get() -> TracesCommitment {
+fn get() -> TracesCommitment<InteractionElements> {
     let unsent_commitment = stone_proof_fibonacci::traces::unsent_commitment::get();
     let traces_config = stone_proof_fibonacci::traces::config::get();
 

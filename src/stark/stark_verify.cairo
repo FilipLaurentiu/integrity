@@ -2,6 +2,7 @@ use cairo_verifier::{
     queries::queries::queries_to_points, domains::StarkDomains,
     fri::fri::{FriDecommitment, fri_verify},
     stark::{StarkUnsentCommitment, StarkWitness, StarkCommitment},
+    air::layouts::LayoutTrait,
     // === DEX BEGIN ===
     // air::layouts::dex::traces::traces_decommit, // === DEX END ===
     // === RECURSIVE BEGIN ===
@@ -21,19 +22,23 @@ use cairo_verifier::{
     // === STARKNET_WITH_KECCAK END ===
     table_commitment::table_commitment::table_decommit,
     oods::{OodsEvaluationInfo, eval_oods_boundary_poly_at_points},
+    air::traces::TracesCommitment,
 };
 
 // STARK verify phase.
-fn stark_verify(
+fn stark_verify<
+    InteractionElements,
+    impl Layout: LayoutTrait<InteractionElements>,
+>(
     n_original_columns: u32,
     n_interaction_columns: u32,
     queries: Span<felt252>,
-    commitment: StarkCommitment,
+    commitment: StarkCommitment<InteractionElements>,
     witness: StarkWitness,
     stark_domains: StarkDomains,
 ) {
     // First layer decommit.
-    traces_decommit(
+    Layout::traces_decommit(
         queries, commitment.traces, witness.traces_decommitment, witness.traces_witness
     );
 
@@ -54,7 +59,7 @@ fn stark_verify(
         trace_generator: stark_domains.trace_generator,
         constraint_coefficients: commitment.interaction_after_oods,
     };
-    let oods_poly_evals = eval_oods_boundary_poly_at_points(
+    let oods_poly_evals = eval_oods_boundary_poly_at_points::<InteractionElements, Layout>(
         n_original_columns,
         n_interaction_columns,
         eval_info,

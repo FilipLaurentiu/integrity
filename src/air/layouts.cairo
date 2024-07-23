@@ -17,4 +17,49 @@ mod recursive;
 // mod starknet_with_keccak;
 // === STARKNET_WITH_KECCAK END ===
 
+use cairo_verifier::{
+    air::{
+        public_input::PublicInput,
+        traces::{TracesUnsentCommitment, TracesCommitment, TracesDecommitment, TracesWitness, TracesConfig},
+    },
+    channel::channel::Channel,
+};
 
+
+trait LayoutTrait<InteractionElements> {
+    fn eval_composition_polynomial(
+        interaction_elements: InteractionElements,
+        public_input: @PublicInput,
+        mask_values: Span<felt252>,
+        constraint_coefficients: Span<felt252>,
+        point: felt252,
+        trace_domain_size: felt252,
+        trace_generator: felt252
+    ) -> felt252;
+
+    fn eval_oods_polynomial(
+        column_values: Span<felt252>,
+        oods_values: Span<felt252>,
+        constraint_coefficients: Span<felt252>,
+        point: felt252,
+        oods_point: felt252,
+        trace_generator: felt252,
+    ) -> felt252;
+
+    fn traces_commit(
+        ref channel: Channel,
+        unsent_commitment: TracesUnsentCommitment,
+        config: TracesConfig
+    ) -> TracesCommitment<InteractionElements>;
+
+    fn traces_decommit(
+        queries: Span<felt252>,
+        commitment: TracesCommitment<InteractionElements>,
+        decommitment: TracesDecommitment,
+        witness: TracesWitness,
+    );
+
+    fn verify_cairo0(self: @PublicInput) -> (felt252, felt252);
+
+    fn verify_cairo1(self: @PublicInput) -> (felt252, felt252);
+}

@@ -4,42 +4,49 @@ mod stark_verify;
 #[cfg(test)]
 mod tests;
 
+// TODO: import from layout
+const NUM_COLUMNS_FIRST: u32 = 3;
+const NUM_COLUMNS_SECOND: u32 = 3;
+
 use cairo_verifier::{
     air::{
+        traces::{TracesUnsentCommitment, TracesCommitment, TracesDecommitment, TracesConfigTrait},
         public_input::{PublicInput, get_public_input_hash},
         // === DEX BEGIN ===
         // layouts::dex::{
         // traces::{TracesConfig, TracesConfigTrait}, public_input::DexPublicInputImpl,
-        // traces::{TracesUnsentCommitment, TracesCommitment, TracesDecommitment, TracesWitness},
+        // traces::{TracesWitness},
         // constants::{NUM_COLUMNS_FIRST, NUM_COLUMNS_SECOND}
         // },
         // === DEX END ===
         // === RECURSIVE BEGIN ===
         layouts::recursive::{
-            traces::{TracesConfig, TracesConfigTrait}, public_input::RecursivePublicInputImpl,
-            traces::{TracesUnsentCommitment, TracesCommitment, TracesDecommitment, TracesWitness},
-            constants::{NUM_COLUMNS_FIRST, NUM_COLUMNS_SECOND},
+            traces::TracesConfig, public_input::RecursivePublicInputImpl,
+            traces::{TracesWitness},
+            // constants::{NUM_COLUMNS_FIRST, NUM_COLUMNS_SECOND},
+            LayoutRecursive,
+            global_values::InteractionElements,
         },
     // === RECURSIVE END ===
     // === RECURSIVE_WITH_POSEIDON BEGIN ===
     // layouts::recursive_with_poseidon::{
     // traces::{TracesConfig, TracesConfigTrait},
     // public_input::RecursiveWithPoseidonPublicInputImpl,
-    // traces::{TracesUnsentCommitment, TracesCommitment, TracesDecommitment, TracesWitness},
+    // traces::{TracesWitness},
     // constants::{NUM_COLUMNS_FIRST, NUM_COLUMNS_SECOND}
     // },
     // === RECURSIVE_WITH_POSEIDON END ===
     // === SMALL BEGIN ===
     // layouts::small::{
     // traces::{TracesConfig, TracesConfigTrait}, public_input::SmallPublicInputImpl,
-    // traces::{TracesUnsentCommitment, TracesCommitment, TracesDecommitment, TracesWitness},
+    // traces::{TracesWitness},
     // constants::{NUM_COLUMNS_FIRST, NUM_COLUMNS_SECOND}
     // },
     // === SMALL END ===
     // === STARKNET BEGIN ===
     // layouts::starknet::{
     // traces::{TracesConfig, TracesConfigTrait}, public_input::StarknetPublicInputImpl,
-    // traces::{TracesUnsentCommitment, TracesCommitment, TracesDecommitment, TracesWitness},
+    // traces::{TracesWitness},
     // constants::{NUM_COLUMNS_FIRST, NUM_COLUMNS_SECOND}
     // },
     // === STARKNET END ===
@@ -47,7 +54,7 @@ use cairo_verifier::{
     // layouts::starknet_with_keccak::{
     // traces::{TracesConfig, TracesConfigTrait},
     // public_input::StarknetWithKeccakPublicInputImpl,
-    // traces::{TracesUnsentCommitment, TracesCommitment, TracesDecommitment, TracesWitness},
+    // traces::{TracesWitness},
     // constants::{NUM_COLUMNS_FIRST, NUM_COLUMNS_SECOND}
     // },
     // === STARKNET_WITH_KECCAK END ===
@@ -94,7 +101,7 @@ impl StarkProofImpl of StarkProofTrait {
         let mut channel = ChannelImpl::new(digest);
 
         // STARK commitment phase.
-        let stark_commitment = stark_commit::stark_commit(
+        let stark_commitment = stark_commit::stark_commit::<InteractionElements, LayoutRecursive>(
             ref channel, self.public_input, self.unsent_commitment, self.config, @stark_domains,
         );
 
@@ -106,7 +113,7 @@ impl StarkProofImpl of StarkProofTrait {
         );
 
         // STARK verify phase.
-        stark_verify::stark_verify(
+        stark_verify::stark_verify::<InteractionElements, LayoutRecursive>(
             NUM_COLUMNS_FIRST,
             NUM_COLUMNS_SECOND,
             queries.span(),
@@ -210,8 +217,8 @@ struct StarkUnsentCommitment {
 }
 
 #[derive(Drop, PartialEq, Serde)]
-struct StarkCommitment {
-    traces: TracesCommitment,
+struct StarkCommitment<InteractionElements> {
+    traces: TracesCommitment<InteractionElements>,
     composition: TableCommitment,
     interaction_after_composition: felt252,
     oods_values: Span<felt252>,

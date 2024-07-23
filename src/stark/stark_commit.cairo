@@ -7,8 +7,7 @@ use cairo_verifier::{
     // === DEX END ===
     // === RECURSIVE BEGIN ===
     air::layouts::recursive::{
-        constants::{CONSTRAINT_DEGREE, N_CONSTRAINTS, MASK_SIZE}, public_input::PublicInput,
-        traces::traces_commit,
+        constants::{CONSTRAINT_DEGREE, N_CONSTRAINTS, MASK_SIZE},
     },
     // === RECURSIVE END ===
     // === RECURSIVE_WITH_POSEIDON BEGIN ===
@@ -40,19 +39,27 @@ use cairo_verifier::{
     stark::{StarkUnsentCommitment, StarkConfig, StarkCommitment},
     proof_of_work::proof_of_work::proof_of_work_commit,
     table_commitment::table_commitment::table_commit, oods::verify_oods,
+    air::layouts::LayoutTrait,
+    air::public_input::PublicInput,
+    air::traces::TracesCommitment,
 };
 
 
 // STARK commitment phase.
-fn stark_commit(
+fn stark_commit<
+    InteractionElements,
+    impl Layout: LayoutTrait<InteractionElements>,
+    +Drop<InteractionElements>,
+    +Copy<InteractionElements>,
+>(
     ref channel: Channel,
     public_input: @PublicInput,
     unsent_commitment: @StarkUnsentCommitment,
     config: @StarkConfig,
     stark_domains: @StarkDomains,
-) -> StarkCommitment {
+) -> StarkCommitment<InteractionElements> {
     // Read the commitment of the 'traces' component.
-    let traces_commitment = traces_commit(ref channel, *unsent_commitment.traces, *config.traces,);
+    let traces_commitment = Layout::traces_commit(ref channel, *unsent_commitment.traces, *config.traces,);
 
     // Generate interaction values after traces commitment.
     let composition_alpha = channel.random_felt_to_prover();
@@ -70,7 +77,7 @@ fn stark_commit(
     channel.read_felt_vector_from_prover(*unsent_commitment.oods_values);
 
     // Check that the trace and the composition agree at oods_point.
-    verify_oods(
+    verify_oods::<InteractionElements, Layout>(
         *unsent_commitment.oods_values,
         traces_commitment.interaction_elements,
         public_input,

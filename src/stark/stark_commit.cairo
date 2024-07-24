@@ -48,16 +48,15 @@ use cairo_verifier::{
 // STARK commitment phase.
 fn stark_commit<
     InteractionElements,
-    impl Layout: LayoutTrait<InteractionElements>,
-    +Drop<InteractionElements>,
-    +Copy<InteractionElements>,
+    impl Layout: LayoutTrait<InteractionElements, InteractionElementsDrop>,
+    impl InteractionElementsDrop: Drop<InteractionElements>
 >(
     ref channel: Channel,
     public_input: @PublicInput,
     unsent_commitment: @StarkUnsentCommitment,
     config: @StarkConfig,
     stark_domains: @StarkDomains,
-) -> StarkCommitment<InteractionElements> {
+) -> StarkCommitment<InteractionElements, InteractionElementsDrop> {
     // Read the commitment of the 'traces' component.
     let traces_commitment = Layout::traces_commit(ref channel, *unsent_commitment.traces, *config.traces,);
 
@@ -77,7 +76,7 @@ fn stark_commit<
     channel.read_felt_vector_from_prover(*unsent_commitment.oods_values);
 
     // Check that the trace and the composition agree at oods_point.
-    verify_oods::<InteractionElements, Layout>(
+    verify_oods::<InteractionElements, Layout, InteractionElementsDrop>(
         *unsent_commitment.oods_values,
         traces_commitment.interaction_elements,
         public_input,

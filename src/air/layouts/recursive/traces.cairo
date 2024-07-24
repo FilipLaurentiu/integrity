@@ -2,7 +2,7 @@ use cairo_verifier::{
     air::{
         traces::{TracesUnsentCommitment, TracesCommitment, TracesDecommitment, TracesWitness, TracesConfig},
         layouts::recursive::{
-            constants::{NUM_COLUMNS_FIRST, NUM_COLUMNS_SECOND}, global_values::InteractionElements,
+            constants::{NUM_COLUMNS_FIRST, NUM_COLUMNS_SECOND}, global_values::{InteractionElements, DInteractionElements},
         },
     },
     channel::channel::{Channel, ChannelTrait},
@@ -19,7 +19,7 @@ const MAX_N_COLUMNS: felt252 = 128;
 // Returns the commitment, along with GlobalValue required to evaluate the constraint polynomial.
 fn traces_commit(
     ref channel: Channel, unsent_commitment: TracesUnsentCommitment, config: TracesConfig
-) -> TracesCommitment<InteractionElements> {
+) -> TracesCommitment<InteractionElements, DInteractionElements> {
     // Read original commitment.
     let original_commitment = table_commit(
         ref channel, unsent_commitment.original, config.original
@@ -49,7 +49,7 @@ fn traces_commit(
 // decommitment - holds the commited values of the leaves at the query_indices.
 fn traces_decommit(
     queries: Span<felt252>,
-    commitment: TracesCommitment<InteractionElements>,
+    commitment: TracesCommitment<InteractionElements, DInteractionElements>,
     decommitment: TracesDecommitment,
     witness: TracesWitness,
 ) {

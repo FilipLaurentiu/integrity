@@ -61,8 +61,8 @@ struct OodsEvaluationInfo {
 // with the proper evaluations.
 fn verify_oods<
     InteractionElements,
-    impl Layout: LayoutTrait<InteractionElements>,
-    +Drop<InteractionElements>
+    impl Layout: LayoutTrait<InteractionElements, InteractionElementsDrop>,
+    impl InteractionElementsDrop: Drop<InteractionElements>,
 >(
     oods: Span<felt252>,
     interaction_elements: InteractionElements,
@@ -90,7 +90,8 @@ fn verify_oods<
 
 fn eval_oods_boundary_poly_at_points<
     InteractionElements,
-    impl Layout: LayoutTrait<InteractionElements>,
+    impl Layout: LayoutTrait<InteractionElements, InteractionElementsDrop>,
+    impl InteractionElementsDrop: Drop<InteractionElements>,
 >(
     n_original_columns: u32,
     n_interaction_columns: u32,

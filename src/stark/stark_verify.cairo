@@ -28,12 +28,13 @@ use cairo_verifier::{
 // STARK verify phase.
 fn stark_verify<
     InteractionElements,
-    impl Layout: LayoutTrait<InteractionElements>,
+    impl Layout: LayoutTrait<InteractionElements, InteractionElementsDrop>,
+    impl InteractionElementsDrop: Drop<InteractionElements>
 >(
     n_original_columns: u32,
     n_interaction_columns: u32,
     queries: Span<felt252>,
-    commitment: StarkCommitment<InteractionElements>,
+    commitment: StarkCommitment<InteractionElements, InteractionElementsDrop>,
     witness: StarkWitness,
     stark_domains: StarkDomains,
 ) {
@@ -59,7 +60,7 @@ fn stark_verify<
         trace_generator: stark_domains.trace_generator,
         constraint_coefficients: commitment.interaction_after_oods,
     };
-    let oods_poly_evals = eval_oods_boundary_poly_at_points::<InteractionElements, Layout>(
+    let oods_poly_evals = eval_oods_boundary_poly_at_points::<InteractionElements, Layout, InteractionElementsDrop>(
         n_original_columns,
         n_interaction_columns,
         eval_info,

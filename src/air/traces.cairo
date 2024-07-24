@@ -26,7 +26,7 @@ struct TracesUnsentCommitment {
 
 // Commitment for the Traces component.
 #[derive(Drop, PartialEq, Serde)]
-struct TracesCommitment<InteractionElements> {
+struct TracesCommitment<InteractionElements, +Drop<InteractionElements>> {
     // Commitment to the first trace.
     original: TableCommitment,
     // The interaction elements that were sent to the prover after the first trace commitment (e.g.

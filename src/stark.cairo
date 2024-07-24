@@ -25,7 +25,7 @@ use cairo_verifier::{
             traces::{TracesWitness},
             // constants::{NUM_COLUMNS_FIRST, NUM_COLUMNS_SECOND},
             LayoutRecursive,
-            global_values::InteractionElements,
+            global_values::{InteractionElements, DInteractionElements},
         },
     // === RECURSIVE END ===
     // === RECURSIVE_WITH_POSEIDON BEGIN ===
@@ -101,7 +101,7 @@ impl StarkProofImpl of StarkProofTrait {
         let mut channel = ChannelImpl::new(digest);
 
         // STARK commitment phase.
-        let stark_commitment = stark_commit::stark_commit::<InteractionElements, LayoutRecursive>(
+        let stark_commitment = stark_commit::stark_commit::<InteractionElements, LayoutRecursive, DInteractionElements>(
             ref channel, self.public_input, self.unsent_commitment, self.config, @stark_domains,
         );
 
@@ -113,7 +113,7 @@ impl StarkProofImpl of StarkProofTrait {
         );
 
         // STARK verify phase.
-        stark_verify::stark_verify::<InteractionElements, LayoutRecursive>(
+        stark_verify::stark_verify::<InteractionElements, LayoutRecursive, DInteractionElements>(
             NUM_COLUMNS_FIRST,
             NUM_COLUMNS_SECOND,
             queries.span(),
@@ -217,8 +217,8 @@ struct StarkUnsentCommitment {
 }
 
 #[derive(Drop, PartialEq, Serde)]
-struct StarkCommitment<InteractionElements> {
-    traces: TracesCommitment<InteractionElements>,
+struct StarkCommitment<InteractionElements, impl InteractionElementsDrop: Drop<InteractionElements>> {
+    traces: TracesCommitment<InteractionElements, InteractionElementsDrop>,
     composition: TableCommitment,
     interaction_after_composition: felt252,
     oods_values: Span<felt252>,

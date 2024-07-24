@@ -26,7 +26,7 @@ use cairo_verifier::{
 };
 
 
-trait LayoutTrait<InteractionElements> {
+trait LayoutTrait<InteractionElements, impl InteractionElementsDrop: Drop<InteractionElements>> {
     fn eval_composition_polynomial(
         interaction_elements: InteractionElements,
         public_input: @PublicInput,
@@ -50,11 +50,11 @@ trait LayoutTrait<InteractionElements> {
         ref channel: Channel,
         unsent_commitment: TracesUnsentCommitment,
         config: TracesConfig
-    ) -> TracesCommitment<InteractionElements>;
+    ) -> TracesCommitment<InteractionElements, InteractionElementsDrop>;
 
     fn traces_decommit(
         queries: Span<felt252>,
-        commitment: TracesCommitment<InteractionElements>,
+        commitment: TracesCommitment<InteractionElements, InteractionElementsDrop>,
         decommitment: TracesDecommitment,
         witness: TracesWitness,
     );
